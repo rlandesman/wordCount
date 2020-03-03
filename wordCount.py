@@ -1,3 +1,7 @@
+# TODO: Add stats for the word count found so user isnt just waiting with blank screenbbb
+# TODO: huge block of text, takes user longer to read than code to runl.
+# TODO: Cuztomizable output excel sheet name >>
+
 import os
 from openpyxl import Workbook
 # from openpyxl.chart import (
@@ -34,7 +38,7 @@ def assignWordList(filename, thisDataEntry):
     oldArr = []
     newArr = []
     try:
-        with open(filename) as file:
+        with open(filename, encoding="latin-1") as file:
             lines = [line.rstrip() for line in file]
             idx = 0
             while(lines[idx] != "***"):
@@ -68,18 +72,31 @@ def getWordOccurance(filename,thisDataEntry):
     Tweak dictionary in data entry, no return
     """
     try:
-        with open(filename) as file:
+        with open(filename, encoding="latin-1") as file:
             cnt = -1
             lines = [line.rstrip() for line in file]
             for line in lines:
                 lowerLine = line.lower()
                 for key in thisDataEntry.old:
-                    if key in lowerLine:
-                        thisDataEntry.old[key] += 1
-                        #Note: If two back-to-back words, will not double count, only once per line
+                    keyLength = len(key.split(" "))
+                    if(keyLength == 1):
+                        if key in lowerLine.split(" "): #By split checks if single word exists exactly
+                            thisDataEntry.old[key] += 1
+                    elif(keyLength > 1):
+                        if key in lowerLine: #By split checks if single word exists exactly
+                            thisDataEntry.old[key] += 1
+                    else:
+                        print("Error, key length unknown!")
                 for key in thisDataEntry.new:
-                    if key in lowerLine:
-                        thisDataEntry.new[key] += 1
+                    keyLength = len(key.split(" "))
+                    if(keyLength == 1):
+                        if key in lowerLine.split(" "):
+                            thisDataEntry.new[key] += 1
+                    elif(keyLength > 1):
+                        if key in lowerLine:
+                            thisDataEntry.new[key] += 1
+                    else:
+                        print("Error, key length unknown!")
         file.close()
     except IOError:
         print("Error opening: " + str(filename))
@@ -134,6 +151,7 @@ def writeToExcel(statArray):
         for cell in col:
             cell.value = statArray[nIdx][1]
             nIdx += 1
+    wb.save("outputWB.xlsx")
 
 def main():
     directory = "/Users/roeelandesman/Desktop/wordCount/articles"
